@@ -94,7 +94,7 @@ int lookupMappings(FEC_CONTEXT *ctx, PARSE_CONTEXT *parseContext, int formStart,
   if ((ctx->formType != NULL) && (strncmp(ctx->formType, parseContext->line->str + formStart, formEnd - formStart) == 0))
   {
     // Type mappings are unchanged from before; can return early
-    return 1;
+    return 0;
   }
 
   // Clear last form type information if present
@@ -183,14 +183,14 @@ int lookupMappings(FEC_CONTEXT *ctx, PARSE_CONTEXT *parseContext, int formStart,
         freeString(headersCsv);
 
         // Done; return
-        return 1;
+        return 0;
       }
     }
   }
 
   // Unmatched — error
   fprintf(stderr, "Error: Unmatched for version %s and form type %s\n", ctx->version, ctx->formType);
-  return -1;
+  return 1;
 }
 
 void writeSubstrToWriter(FEC_CONTEXT *ctx, WRITE_CONTEXT *writeContext, char *filename, const char *extension, int start, int end, FIELD_INFO *field)
@@ -545,8 +545,8 @@ int parseLine(FEC_CONTEXT *ctx, char *filename, int headerRow)
       int mappings = lookupMappings(ctx, &parseContext, formStart, formEnd);
 
       // Failed to find a match; skip this filing
-      if (mappings == -1) {
-        return -1;
+      if (mappings == 1) {
+        return 1;
       }
 
       // Set filename if null to form type
@@ -863,8 +863,8 @@ int parseFec(FEC_CONTEXT *ctx)
     
     skipGrabLine = parseLineResult == 2;
 
-    if (parseLineResult == -1) {
-      return -1;
+    if (parseLineResult == 1) {
+      return 1;
       }
   }
 
