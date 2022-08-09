@@ -8,59 +8,16 @@ on:
       - "*.*.*"
 
 jobs:
-  build-for-stable-release:
-    runs-on: ubuntu-latest
+  build-and-upload-stable-release:
     if: github.event.base_ref == 'refs/heads/main'
-    steps:
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::latest
-        shell: bash
-      - uses: ./.github/workflows/_release.yml
-        with:
-          version: ${{ steps.get_version.outputs.VERSION }}
+    uses: ./.github/workflows/_release.yml
+    with:
+      version: ${{ github.ref_name }}
+      uploadRelease: true
 
-  upload-stable-release:
-    needs: [build-for-stable-release]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::latest
-        shell: bash
-      - uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            fastfec-linux-x86_64-${{ steps.get_version.outputs.VERSION }}.zip
-            libfastfec-linux-x86_64-${{ steps.get_version.outputs.VERSION }}.so
-            fastfec-linux-aarch64-${{ steps.get_version.outputs.VERSION }}.zip
-            libfastfec-linux-aarch64-${{ steps.get_version.outputs.VERSION }}.so
-            fastfec-macos-x86_64-${{ steps.get_version.outputs.VERSION }}.zip
-            libfastfec-macos-x86_64-${{ steps.get_version.outputs.VERSION }}.dylib
-            fastfec-macos-aarch64-${{ steps.get_version.outputs.VERSION }}.zip
-            libfastfec-macos-aarch64-${{ steps.get_version.outputs.VERSION }}.dylib
-            fastfec-windows-x86_64-${{ steps.get_version.outputs.VERSION }}.zip
-            libfastfec-windows-x86_64-${{ steps.get_version.outputs.VERSION }}.dll
-            fastfec-windows-aarch64-${{ steps.get_version.outputs.VERSION }}.zip
-            libfastfec-windows-aarch64-${{ steps.get_version.outputs.VERSION }}.dll
-            libfastfec-${{ steps.get_version.outputs.VERSION }}.wasm
-
-  build-wheels-for-stable-release:
+  build-and-upload-stable-wheels:
     if: github.event.base_ref == 'refs/heads/main'
     uses: ./.github/workflows/_python-wheels.yml
-
-  upload-wheels-for-stable-release:
-    if: github.event.base_ref == 'refs/heads/main'
-    needs: [build_wheels]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: artifact
-          path: dist
-
-      - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.4.2
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_token }}
+    with:
+      publishToPyPI: true
+    secrets: inherit
