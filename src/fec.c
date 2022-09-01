@@ -45,13 +45,15 @@ FEC_CONTEXT *newFecContext(PERSISTENT_MEMORY_CONTEXT *persistentMemory, BufferRe
   if (ctx->f99TextStart == NULL)
   {
     fprintf(stderr, "Regex f99 text start compilation failed at offset %d: %s\n", errorOffset, error);
-    exit(1);
+    return 3;
+    // exit(1);
   }
   ctx->f99TextEnd = pcre_compile("^\\s*\\[END ?TEXT\\]\\s*$", PCRE_CASELESS, &error, &errorOffset, NULL);
   if (ctx->f99TextEnd == NULL)
   {
     fprintf(stderr, "Regex f99 text end compilation failed at offset %d: %s\n", errorOffset, error);
-    exit(1);
+    return 3;
+    // exit(1);
   }
 
   return ctx;
@@ -190,7 +192,8 @@ int lookupMappings(FEC_CONTEXT *ctx, PARSE_CONTEXT *parseContext, int formStart,
 
   // Unmatched — error
   fprintf(stderr, "Error: Unmatched for version %s and form type %s\n", ctx->version, ctx->formType);
-  return -1;
+  return 3;
+  // return -1;
 }
 
 void writeSubstrToWriter(FEC_CONTEXT *ctx, WRITE_CONTEXT *writeContext, char *filename, const char *extension, int start, int end, FIELD_INFO *field)
@@ -543,12 +546,17 @@ int parseLine(FEC_CONTEXT *ctx, char *filename, int headerRow)
       formStart = parseContext.start;
       formEnd = parseContext.end;
       int mappings = lookupMappings(ctx, &parseContext, formStart, formEnd);
-
       // Failed to find a match; skip this filing
-      if (mappings == -1) {
+      if (mappings == -1)
+      {
         return -1;
       }
 
+      // failed to parse the file; return 3
+      if (mappings == 3)
+      {
+        return 3;
+      }
       // Set filename if null to form type
       if (filename == NULL)
       {
@@ -622,7 +630,10 @@ int parseLine(FEC_CONTEXT *ctx, char *filename, int headerRow)
       {
         // Unknown type
         fprintf(stderr, "Unknown type (%c) in %s\n", type, ctx->formType);
-        exit(1);
+        printf("UNKNOWN TYPE");
+        return 3;
+
+        // exit(1);
       }
     }
 
@@ -836,6 +847,7 @@ void parseHeader(FEC_CONTEXT *ctx)
 
 int parseFec(FEC_CONTEXT *ctx)
 {
+  fprintf(stderr, "please tell me im in parseFec at least ....");
   int skipGrabLine = 0;
 
   if (grabLine(ctx) == 0)
@@ -859,13 +871,20 @@ int parseFec(FEC_CONTEXT *ctx)
 
     // Parse the line and write its parsed output
     // to CSV files depending on version/form type
-    int parseLineResult = parseLine(ctx, NULL, 0) ;
-    
+    int parseLineResult = parseLine(ctx, NULL, 0);
+    fprintf(stderr, "PARSE LINE RESULT HERE %d", parseLineResult);
+
     skipGrabLine = parseLineResult == 2;
 
-    if (parseLineResult == -1) {
-      return -1;
-      }
+    // if (parseLineResult == -1)
+    // {
+    //   return -1;
+    // }
+    // if we failed to parse, bubble the error up
+    if (parseLineResult == 3)
+    {
+      return 3;
+    }
   }
 
   return 1;
