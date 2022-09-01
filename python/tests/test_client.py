@@ -21,7 +21,9 @@ def test_filing_1550126_line_callback(filing_1550126):
             assert len(summary_data) == 93
             assert summary_form == "F3A"
             assert summary_data["filer_committee_id_number"] == "C00772335"
-            assert summary_data["committee_name"] == "Jeffrey Buongiorno for US Congress"
+            assert (
+                summary_data["committee_name"] == "Jeffrey Buongiorno for US Congress"
+            )
             assert summary_data["election_date"] == ""
             assert summary_data["coverage_from_date"] == datetime.date(2021, 7, 1)
             assert summary_data["col_a_total_contributions_no_loans"] == 4239.0
@@ -115,6 +117,7 @@ def test_filing_1606847_parse_as_files(tmpdir, filing_1606847):
         ].sort()
     )
 
+
 def test_filing_1613679_malformed(tmpdir, filing_1613679_malformed):
     """
     Test that 1613679 with version number 2.4 raises an exception
@@ -125,6 +128,4 @@ def test_filing_1613679_malformed(tmpdir, filing_1613679_malformed):
             with FastFEC() as fastfec:
                 fastfec.parse_as_files(filing, tmpdir)
 
-    assert str(exc_info.value) == "FastFEC failed to parse."
-
-
+    assert str(exc_info.value) == "Unknown formtype"
