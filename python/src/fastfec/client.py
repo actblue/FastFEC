@@ -63,7 +63,9 @@ class LibFastFEC:
 
         # Provide a custom line callback
         buffer_read_fn = provide_read_callback(file_handle)
-        line_callback_fn = CUSTOM_LINE(provide_line_callback(queue, filing_id_included, should_parse_date))
+        line_callback_fn = CUSTOM_LINE(
+            provide_line_callback(queue, filing_id_included, should_parse_date)
+        )
         fec_context = self.libfastfec.newFecContext(
             self.persistent_memory_context,
             buffer_read_fn,
@@ -125,7 +127,9 @@ class LibFastFEC:
             # pylint: disable=consider-using-with,unspecified-encoding,bad-option-value
             return open(filename, *args, **kwargs)
 
-        return self.parse_as_files_custom(file_handle, open_output_file, include_filing_id=include_filing_id)
+        return self.parse_as_files_custom(
+            file_handle, open_output_file, include_filing_id=include_filing_id
+        )
 
     def parse_as_files_custom(self, file_handle, open_function, include_filing_id=None):
         """
@@ -175,7 +179,8 @@ class LibFastFEC:
 
         if result == -1:
             raise Exception("FastFEC failed to parse.")
-
+        if result == 3:
+            raise Exception("Unknown formtype")
         return result
 
     def free(self):
