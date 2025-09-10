@@ -30,7 +30,6 @@ def filing_1550126(get_fixture):
     """
     return get_fixture("1550126.fec")
 
-
 @pytest.fixture
 def filing_1550548(get_fixture):
     """
@@ -46,6 +45,7 @@ def filing_1606847(get_fixture):
     return get_fixture("1606847.fec")
 
 @pytest.fixture
+
 def filing_invalid_version(get_fixture):
     """
     Returns the file path for filing_invalid_version.fec

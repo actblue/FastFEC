@@ -543,6 +543,7 @@ int parseLine(FEC_CONTEXT *ctx, char *filename, int headerRow)
       stripWhitespace(&parseContext);
       formStart = parseContext.start;
       formEnd = parseContext.end;
+      
       if (!lookupMappings(ctx, &parseContext, formStart, formEnd))
       {
         return 3;
@@ -864,7 +865,13 @@ int parseFec(FEC_CONTEXT *ctx)
 
     // Parse the line and write its parsed output
     // to CSV files depending on version/form type
-    skipGrabLine = parseLine(ctx, NULL, 0) == 2;
+    int parseLineResult = parseLine(ctx, NULL, 0) ;
+    
+    skipGrabLine = parseLineResult == 2;
+
+    if (parseLineResult == -1) {
+      return -1;
+      }
   }
 
   return 1;
