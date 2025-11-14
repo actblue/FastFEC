@@ -217,18 +217,31 @@ int getFile(WRITE_CONTEXT *context, char *filename, const char *extension)
   if (context->writeToFile)
   {
     // Ensure the directory exists (will silently fail if it does)
-    char *fullpath = (char *)malloc(sizeof(char) * (strlen(context->outputDirectory) + strlen(filename) + 1 + strlen(context->filingId) + strlen(extension) + 1));
-    strcpy(fullpath, context->outputDirectory);
-    strcat(fullpath, context->filingId);
+    size_t fullpath_len = strlen(context->outputDirectory) + strlen(context->filingId) + strlen(DIR_SEPARATOR)
+        + strlen(filename) + strlen(extension) + 1;
+    char *fullpath = (char *)malloc(fullpath_len);
+    if (!fullpath) {
+        // Handle malloc failure
+        free(normalizedFilename);
+        return -1;
+    }
+
+    fullpath[0] = '\0';
+    strncat(fullpath, context->outputDirectory, fullpath_len - strlen(fullpath) - 1);
+    strncat(fullpath, context->filingId, fullpath_len - strlen(fullpath) - 1);
     mkdir_p(fullpath);
 
     // Add the normalized filename to path
-    strcat(fullpath, DIR_SEPARATOR);
+    strncat(fullpath, DIR_SEPARATOR, fullpath_len - strlen(fullpath) - 1);
     char *normalizedFilename = malloc(strlen(filename) + 1);
-    strcpy(normalizedFilename, filename);
+    if (!normalizedFilename) {
+        free(fullpath);
+        return -1;
+    }
+    strncpy(normalizedFilename, filename, strlen(filename) + 1);
     normalize_filename(normalizedFilename);
-    strcat(fullpath, normalizedFilename);
-    strcat(fullpath, extension);
+    strncat(fullpath, normalizedFilename, fullpath_len - strlen(fullpath) - 1);
+    strncat(fullpath, extension, fullpath_len - strlen(fullpath) - 1);
 
     context->files[context->nfiles] = fopen(fullpath, "w");
     // Free the derived file paths
